@@ -1,0 +1,2 @@
+defmodule Kerosene do
+end
