@@ -42,16 +42,22 @@ defmodule Kerosene do
 
   defp get_total_count(repo, query) do
     count = query
+      |> exclude(:order_by)
+      |> exclude(:select)
       |> select([i], count(i.id))
       |> repo.one
   end
 
   def get_per_page(params) do
-    params |> Keyword.get(:per_page, 10) |> to_integer
+    params 
+      |> Keyword.get(:per_page, 10) 
+      |> to_integer
   end
 
-  def get_per_page(params) do
-    params |> Keyword.get(:page, 1) |> to_integer
+  def get_page(params) do
+    params 
+      |> Keyword.get(:page, 1) 
+      |> to_integer
   end
 
   def merge_options(opts, params) do
