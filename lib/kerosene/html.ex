@@ -1,81 +1,44 @@
 defmodule Kerosene.HTML do
   use Phoenix.HTML
 
-  @defaults [theme: :bootstrap, action: :index]
+  @defaults [theme: :bootstrap]
   @themes [:bootstrap, :foundation, :semantic]
-  @raw_defaults [distance: 5, next: "Next", previous: "Previous", first: true, last: true]
+  @page_defaults [window: 5, next: "Next", previous: "Previous", first: true, last: true]
 
   @moduledoc """
-  For use with Phoenix.HTML, configure the `:route_helpers` module like the following:
-
-      config :kerosene,
-        routes_helper: MyApp.Router.Helpers
-
-  Import to you view.
+  Html helpers to render the pagination links and more, 
+  import the `Kerosene.HTMl` in your view module.
 
       defmodule MyApp.UserView do
         use MyApp.Web, :view
         import Kerosene.HTML
       end
 
-  Use in your template.
+  available helpers in your template file.
+      <%= paginate @conn, @page %>
 
-      <%= paginate @conn, @pages %>
+  Where `@page` is a `%Kerosene{}` struct returned from `Repo.paginate/2`.
 
-  Where `@pages` is a `%Kerosene{}` struct returned from `Repo.paginate/2`.
-
-  Customize output. Below are the defaults.
-    <%= paginate @conn, @pages, distance: 5, next: ">>", previous: "<<", first: true, last: true %>
-
-  See `Kerosene.HTML.raw_pagination_links/2` for option descriptions.
-
-  For custom HTML output, see `Kerosene.HTML.raw_pagination_links/2`.
+  Paginate helper can aslo be customezed for each template file.
+    <%= paginate @conn, @page, window: 5, next: ">>", previous: "<<", first: true, last: true %>
   """
 
-  defmodule Default do
-    @doc """
-    Default path function when none provided. Used when automatic path function
-    resolution cannot be performed.
-    """
-    def path(_conn, :index, opts) do
-      Enum.reduce opts, "?", fn {k, v}, s ->
-        "#{s}#{if(s == "?", do: "", else: "&")}#{k}=#{v}"
-      end
-    end
-  end
-
   @doc """
-  Generates the HTML pagination links for a given paginator returned by Kerosene.
+  Generates the HTML pagination links for a given page returned by Kerosene.
 
   The default options are:
 
       #{inspect @defaults}
 
   The `theme` indicates which CSS framework you are using. The default is
-  `:bootstrap`, but you can add your own using the `Kerosene.HTML.raw_pagination_links/2` function
-  if desired. The full list of available `theme`s is here:
+  `:bootstrap`, but you can add your own using the `Kerosene.HTML.raw_paginate/2` function
+  if desired. Kerosene provides few themes out of the box:
 
       #{inspect @themes}
 
   An example of the output data:
 
-      iex> Kerosene.HTML.paginate(%Kerosene{total_pages: 10, page: 5})
-      {:safe,
-        ["<nav>",
-         ["<ul class=\"pagination\">",
-          [["<li>", ["<a class=\"\" href=\"?page=4\">", "&lt;&lt;", "</a>"], "</li>"],
-           ["<li>", ["<a class=\"\" href=\"?page=1\">", "1", "</a>"], "</li>"],
-           ["<li>", ["<a class=\"\" href=\"?page=2\">", "2", "</a>"], "</li>"],
-           ["<li>", ["<a class=\"\" href=\"?page=3\">", "3", "</a>"], "</li>"],
-           ["<li>", ["<a class=\"\" href=\"?page=4\">", "4", "</a>"], "</li>"],
-           ["<li>", ["<a class=\"active\" href=\"?page=5\">", "5", "</a>"], "</li>"],
-           ["<li>", ["<a class=\"\" href=\"?page=6\">", "6", "</a>"], "</li>"],
-           ["<li>", ["<a class=\"\" href=\"?page=7\">", "7", "</a>"], "</li>"],
-           ["<li>", ["<a class=\"\" href=\"?page=8\">", "8", "</a>"], "</li>"],
-           ["<li>", ["<a class=\"\" href=\"?page=9\">", "9", "</a>"], "</li>"],
-           ["<li>", ["<a class=\"\" href=\"?page=10\">", "10", "</a>"], "</li>"],
-           ["<li>", ["<a class=\"\" href=\"?page=6\">", "&gt;&gt;", "</a>"], "</li>"]],
-          "</ul>"], "</nav>"]}
+      iex> Kerosene.HTML.paginate(%Kerosene{page: 5, per_page: 10})
 
   In order to generate links with nested objects (such as a list of comments for a given post)
   it is necessary to pass those arguments. All arguments in the `args` parameter will be directly
@@ -99,128 +62,23 @@ defmodule Kerosene.HTML do
   because the `page` parameter will always be supplied. If you supply the wrong function you will receive a
   function undefined exception.
   """
-  defmacro __using__(opts \\ []) do
+  defmacro __using__(_opts \\ []) do
     quote do
       import Kerosene.HTML
     end
   end
 
-
-  def paginate(conn, paginator, args, opts) do
-    opts = Keyword.merge opts, theme: opts[:theme] || Application.get_env(:kerosene, :theme, :bootstrap)
-    merged_opts = Keyword.merge @defaults, opts
-
-    path = opts[:path] || find_path_fn(conn && paginator.items, args)
-    params = Keyword.drop opts, (Keyword.keys(@defaults) ++ [:path])
-
-    # Ensure ordering so pattern matching is reliable
-    do_paginate paginator,
-      theme: merged_opts[:theme],
-      path: path,
-      args: [conn, merged_opts[:action]] ++ args,
-      params: params
-  end
-  def paginate(%Kerosene{} = paginator), do: paginate(nil, paginator, [], [])
-  def paginate(%Kerosene{} = paginator, opts), do: paginate(nil, paginator, [], opts)
-  def paginate(conn, %Kerosene{} = paginator), do: paginate(conn, paginator, [], [])
-  def paginate(conn, paginator, [{_, _} | _] = opts), do: paginate(conn, paginator, [], opts)
-  def paginate(conn, paginator, [_ | _] = args), do: paginate(conn, paginator, args, [])
-
-  defp find_path_fn(nil, _path_args), do: &Default.path/3
-  defp find_path_fn([], _path_args), do: fn _, _, _ -> nil end
-  # Define a different version of `find_path_fn` whenever Phoenix is available.
-  if Code.ensure_loaded(Phoenix.Naming) do
-    defp find_path_fn(items, path_args) do
-      route_helpers_module = Application.get_env(:kerosene, :route_helpers) || raise("Kerosene.HTML: Unable to find configured route_helpers module (ex. MyApp.Router.Helpers)")
-      path = (path_args) |> Enum.reduce(name_for(List.first(items), ""), &name_for/2)
-      {path_fn, []} = Code.eval_quoted(quote do: &unquote(route_helpers_module).unquote(:"#{path <> "_path"}")/unquote(length(path_args) + 3))
-      path_fn
-    end
-  else
-    defp find_path_fn(_items, _args), do: &Default/3
+  def paginate(conn, paginator, opts \\ [], params \\ []) do
+    merged_opts = build_options(opts)
+    path = merged_opts[:path] || build_url(conn, params)
+    do_paginate(conn, paginator, theme: merged_opts[:theme], path: path, params: params, opts: merged_opts)
   end
 
-  defp name_for(model, acc) do
-    "#{acc}#{if(acc != "", do: "_")}#{Phoenix.Naming.resource_name(model.__struct__)}"
+  defp do_paginate(_paginator, [theme: theme]) when not theme in @themes do
+    raise "Kerosene.HTML: Theme #{inspect theme} is not a valid them. Please use one of #{inspect @themes}"
   end
-
-  defp do_paginate(_paginator, [theme: style, path: _path, args: _args, params: _params]) when not style in @themes do
-    raise "Kerosene.HTML: Theme #{inspect style} is not a valid them. Please use one of #{inspect @themes}"
-  end
-
-  # Bootstrap implementation
-  defp do_paginate(paginator, [theme: :bootstrap, path: path, args: args, params: params]) do
-    url_params = Keyword.drop params, Keyword.keys(@raw_defaults)
-    content_tag :nav do
-      content_tag :ul, class: "pagination" do
-        raw_paginate(paginator, params)
-        |> Enum.map(fn ({text, page})->
-          classes = []
-          if paginator.page == page do
-            classes = ["active"]
-          end
-          params_with_page = Keyword.merge(url_params, page: page)
-          content_tag :li, class: Enum.join(classes, " ") do
-            to = apply(path, args ++ [params_with_page])
-            if to do
-              link "#{text}", to: to
-            else
-              content_tag :a, "#{text}"
-            end
-          end
-        end)
-      end
-    end
-  end
-
-  # Semantic UI implementation
-  defp do_paginate(paginator, [theme: :semantic, path: path, args: args, params: params]) do
-    url_params = Keyword.drop params, Keyword.keys(@raw_defaults)
-    content_tag :div, class: "ui pagination menu" do
-      raw_paginate(paginator, params)
-      |> Enum.map(fn({text, page}) ->
-        classes = ["item"]
-        if paginator.page == page do
-          classes = ["active", "item"]
-        end
-        params_with_page = Keyword.merge(url_params, page: page)
-        to = apply(path, args ++ [params_with_page])
-        class = Enum.join(classes, " ")
-        if to do
-          link "#{text}", to: apply(path, args ++ [params_with_page]), class: class
-        else
-          content_tag :a, "#{text}", class: class
-        end
-      end)
-    end
-  end
-
-  # Foundation for Sites 6.x implementation
-  defp do_paginate(paginator, [theme: :foundation, path: path, args: args, params: params]) do
-    url_params = Keyword.drop params, Keyword.keys(@raw_defaults)
-    content_tag :ul, class: "pagination", role: "pagination" do
-      raw_paginate(paginator, params)
-      |> Enum.map(fn({text, page}) ->
-        classes = []
-        if paginator.page == page do
-          classes = ["current"]
-        end
-        params_with_page = Keyword.merge(url_params, page: page)
-        to = apply(path, args ++ [params_with_page])
-        class = Enum.join(classes, " ")
-        content_tag :li, class: class do
-          if paginator.page == page do
-            content_tag :span, "#{text}"
-          else
-            if to do
-              link "#{text}", to: apply(path, args ++ [params_with_page])
-            else
-              content_tag :a, "#{text}"
-            end
-          end
-        end
-      end)
-    end
+  defp do_paginate(conn, paginator, opts) do
+    conn |> build_page_list(paginator, opts) |> render_page_list(paginator, opts)
   end
 
   @doc """
@@ -229,9 +87,9 @@ defmodule Kerosene.HTML do
   of the link and `page` is the page it should go to. Defaults are already supplied
   and they are as follows:
 
-      #{inspect @raw_defaults}
+      #{inspect @page_defaults}
 
-  `distance` must be a positive non-zero integer or an exception is raised. `next` and `previous` should be
+  `window` must be a positive non-zero integer or an exception is raised. `next` and `previous` should be
   strings but can be anything you want as long as it is truthy, falsey values will remove
   them from the output. `first` and `last` are only booleans, and they just include/remove
   their respective link from output. An example of the data returned:
@@ -241,77 +99,95 @@ defmodule Kerosene.HTML do
 
   Simply loop and pattern match over each item and transform it to your custom HTML.
   """
-  def raw_paginate(paginator, options \\ []) do
-    options = Keyword.merge @raw_defaults, options
+  def build_page_list(conn, paginator, options \\ []) do
+    options = Keyword.merge(@page_defaults, options)
 
-    add_previous(paginator.page)
-    |> add_first(paginator.page, options[:distance], options[:first])
-    |> page_list(paginator.page, paginator.total_pages, options[:distance])
-    |> add_last(paginator.page, paginator.total_pages, options[:distance], options[:last])
-    |> add_next(paginator.page, paginator.total_pages)
-    |> Enum.map(fn
-      :next -> if options[:next], do: {options[:next], paginator.page + 1}
-      :previous -> if options[:previous], do: {options[:previous], paginator.page - 1}
-      num -> {num, num}
-    end) |> Enum.filter(&(&1))
+    paginator.page
+      |> previous_page
+      |> first_page(paginator.page, options[:window], options[:first])
+      |> page_list(paginator.page, paginator.total_pages, options[:window])
+      |> last_page(paginator.page, paginator.total_pages, options[:window], options[:last])
+      |> next_page(paginator.page, paginator.total_pages)
+      |> Enum.map(fn {label, page} -> {label, page, build_url(conn, page: page)} end)
+  end
+
+  defp render_page_list(page_list, paginator, [theme: :bootstrap, path: path, params: _params, opts: _opts]) do
+    Kerosene.HTML.Boostrap.generate_links(page_list, paginator)
+  end
+  defp render_page_list(page_list, paginator, [theme: :foundation, path: path, params: _params, opts: _opts]) do
+    Kerosene.HTML.Foundation.generate_links(page_list, paginator)
+  end
+  defp render_page_list(page_list, paginator, [theme: :semantic, path: path, params: _params, opts: _opts]) do
+    Kerosene.HTML.Semantic.generate_links(page_list, paginator)
+  end
+  defp render_page_list(page_list, paginator, opts) do
+    generate_links(page_list, paginator)
+  end
+
+  defp generate_links(page_list, paginator) do
+    content_tag :nav, class: "pagination" do
+      for {label, page, path} <- page_list do
+        link "#{label}", to: path
+      end
+    end
   end
 
   # Computing page number ranges
-  defp page_list(list, page, total, distance) when is_integer(distance) and distance >= 1 do
-    list ++ Enum.to_list(beginning_distance(page, distance)..end_distance(page, total, distance))
+  defp page_list(list, page, total, window) when is_integer(window) and window >= 1 do
+    page_list = left(page, window)..right(page, total, window) |> Enum.map(fn n -> {n, n} end)
+    list ++ page_list
   end
-  defp page_list(_list, _page, _total, _distance) do
-    raise "Kerosene.HTML: Distance cannot be less than one."
-  end
-
-  # Beginning distance computation
-  defp beginning_distance(page, distance) when page - distance < 1 do
-    page - (distance + (page - distance - 1))
-  end
-  defp beginning_distance(page, distance) do
-    page - distance
+  defp page_list(_list, _page, _total, _window) do
+    raise "Kerosene.HTML: window cannot be less than one."
   end
 
-  # End distance computation
-  defp end_distance(page, 0, _distance) do
-    page
+  defp left(page, window) when page - window < 1 do
+    page - (window + (page - window - 1))
   end
-  defp end_distance(page, total, distance) when page + distance >= total do
+  defp left(page, window), do: page - window
+
+  defp right(page, _window, 0), do: page
+  defp right(page, window, total) when page + window >= total do
     total
   end
-  defp end_distance(page, _total, distance) do
-    page + distance
+  defp right(page, window, _total), do: page + window
+
+  defp previous_page(page) when page > 1 do
+    [{:previous, page - 1}]
+  end
+  defp previous_page(_page), do: []
+
+  defp next_page(list, page, total) when page < total do
+    list ++ [{:next, page + 1}]
+  end
+  defp next_page(list, _page, _total), do: list
+
+  defp first_page(list, page, window, true) when page - window > 1 do
+    [{:first, 1} | list]
+  end
+  defp first_page(list, _page, _window, _included), do: list
+
+  defp last_page(list, page, total, window, true) when page + window < total do
+    list ++ [{:last, total}]
+  end
+  defp last_page(list, _page, _total, _window, _included), do: list
+
+  defp build_url(conn, []), do: conn.request_path
+  defp build_url(conn, params) do
+    "#{conn.request_path}?#{build_query(params)}"
   end
 
-  # Adding next/prev/first/last links
-  defp add_previous(page) when page != 1 do
-    [:previous]
-  end
-  defp add_previous(_page) do
-    []
+  defp build_query(params) do
+    params
+      |> Enum.map(fn {key, value} -> "#{key}=#{value}" end)
+      |> Enum.join("&")
   end
 
-  defp add_first(list, page, distance, true) when page - distance > 1 do
-    [1 | list]
+  defp build_options(opts) do
+    theme = opts[:theme] || Application.get_env(:kerosene, :theme, :bootstrap)
+    opts = Keyword.merge(opts, [theme: theme])
+    Keyword.merge(@defaults, opts)
   end
-  defp add_first(list, _page, _distance, _included) do
-    list
-  end
-
-  defp add_last(list, page, total, distance, true) when page + distance < total do
-    list ++ [total]
-  end
-  defp add_last(list, _page, _total, _distance, _included) do
-    list
-  end
-
-  defp add_next(list, page, total) when page != total and page < total do
-    list ++ [:next]
-  end
-  defp add_next(list, _page, _total) do
-    list
-  end
-
 end
 
 # Must do this until Kerosene adds @derive [Enumerable, Access]

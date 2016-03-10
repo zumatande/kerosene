@@ -5,12 +5,12 @@ defmodule Kerosene do
   defmacro __using__(opts \\ []) do
     quote do
       def paginate(query, params) do
-        Kerosene.paginate(__MODULE__, query, unquote(opts), params)
+        Kerosene.paginate(__MODULE__, query, params, unquote(opts))
       end
     end
   end
 
-  def paginate(repo, query, opts, params) do
+  def paginate(repo, query, params, opts) do
     paginate(repo, query, merge_options(opts, params))
   end
 
