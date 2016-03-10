@@ -1,25 +1,24 @@
 defmodule Kerosene.HTML do
   use Phoenix.HTML
 
-  @defaults [theme: :bootstrap]
+  @default [theme: :bootstrap, window: 5, next: "Next", previous: "Previous", first: true, last: true]
   @themes [:bootstrap, :foundation, :semantic]
-  @page_defaults [window: 5, next: "Next", previous: "Previous", first: true, last: true]
 
   @moduledoc """
   Html helpers to render the pagination links and more, 
-  import the `Kerosene.HTMl` in your view module.
+  import the `Kerosene.HTML` in your view module.
 
-      defmodule MyApp.UserView do
+      defmodule MyApp.PostView do
         use MyApp.Web, :view
         import Kerosene.HTML
       end
 
-  available helpers in your template file.
+  now you have these view helpers in your template file.
       <%= paginate @conn, @page %>
 
   Where `@page` is a `%Kerosene{}` struct returned from `Repo.paginate/2`.
 
-  Paginate helper can aslo be customezed for each template file.
+  `paginate` helper takes keyword list of `options` and `params`.
     <%= paginate @conn, @page, window: 5, next: ">>", previous: "<<", first: true, last: true %>
   """
 
@@ -28,7 +27,7 @@ defmodule Kerosene.HTML do
 
   The default options are:
 
-      #{inspect @defaults}
+      #{inspect @default}
 
   The `theme` indicates which CSS framework you are using. The default is
   `:bootstrap`, but you can add your own using the `Kerosene.HTML.raw_paginate/2` function
@@ -36,10 +35,9 @@ defmodule Kerosene.HTML do
 
       #{inspect @themes}
 
-  An example of the output data:
+  Example:
 
       iex> Kerosene.HTML.paginate(%Kerosene{page: 5, per_page: 10})
-
 
   You can override the path by adding an extra key in the `opts` parameter of `:path`.
   For example:
@@ -153,7 +151,7 @@ defmodule Kerosene.HTML do
   defp build_options(opts) do
     theme = opts[:theme] || Application.get_env(:kerosene, :theme, :bootstrap)
     opts = Keyword.merge(opts, [theme: theme])
-    Keyword.merge(@defaults, opts)
+    Keyword.merge(@default, opts)
   end
 end
 
