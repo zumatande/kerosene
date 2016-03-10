@@ -15,8 +15,8 @@ defmodule Kerosene do
   end
 
   def paginate(repo, query, params) do
-    per_page = params |> Keyword.get(:per_page, 10) |> to_integer
-    page = params |> Keyword.get(:page, 1) |> to_integer
+    per_page = get_per_page(params)
+    page = get_page(params)
     total_count = get_total_count(repo, query)
 
     %Kerosene{
@@ -44,6 +44,14 @@ defmodule Kerosene do
     count = query
       |> select([i], count(i.id))
       |> repo.one
+  end
+
+  def get_per_page(params) do
+    params |> Keyword.get(:per_page, 10) |> to_integer
+  end
+
+  def get_per_page(params) do
+    params |> Keyword.get(:page, 1) |> to_integer
   end
 
   def merge_options(opts, params) do
