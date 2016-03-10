@@ -65,7 +65,7 @@ defmodule Kerosene.HTML do
 
   @doc false
   def build_page_list(conn, paginator, opts \\ []) do
-    opts = Keyword.merge(@page_defaults, opts)
+    opts = Keyword.merge(@default, opts)
 
     paginator.page
       |> previous_page
@@ -153,11 +153,4 @@ defmodule Kerosene.HTML do
     opts = Keyword.merge(opts, [theme: theme])
     Keyword.merge(@default, opts)
   end
-end
-
-# Must do this until Kerosene adds @derive [Enumerable, Access]
-defimpl Enumerable, for: Kerosene do
-  def reduce(pages, acc, fun), do: Enum.reduce(pages.items || [], acc, fun)
-  def member?(pages, page), do: page in pages.items
-  def count(pages), do: length(pages.items)
 end
