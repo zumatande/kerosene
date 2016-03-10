@@ -134,7 +134,8 @@ defmodule Kerosene.HTML do
 
   # Computing page number ranges
   defp page_list(list, page, total, window) when is_integer(window) and window >= 1 do
-    page_list = left(page, window)..right(page, total, window) |> Enum.map(fn n -> {n, n} end)
+    page_list = left(page, window)..right(page, window, total) |> Enum.map(fn n -> {n, n} end)
+    IO.inspect page_list
     list ++ page_list
   end
   defp page_list(_list, _page, _total, _window) do
