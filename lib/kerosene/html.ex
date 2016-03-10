@@ -56,9 +56,6 @@ defmodule Kerosene.HTML do
     do_paginate(conn, paginator, theme: merged_opts[:theme], path: path, params: params, opts: merged_opts)
   end
 
-  defp do_paginate(_paginator, [theme: theme]) when not theme in @themes do
-    raise "Kerosene.HTML: Theme #{inspect theme} is not a valid them. Please use one of #{inspect @themes}"
-  end
   defp do_paginate(conn, paginator, opts) do
     conn |> build_page_list(paginator, opts) |> render_page_list(paginator, opts)
   end
