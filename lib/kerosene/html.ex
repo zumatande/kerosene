@@ -40,27 +40,11 @@ defmodule Kerosene.HTML do
 
       iex> Kerosene.HTML.paginate(%Kerosene{page: 5, per_page: 10})
 
-  In order to generate links with nested objects (such as a list of comments for a given post)
-  it is necessary to pass those arguments. All arguments in the `args` parameter will be directly
-  passed to the path helper function. Everything within `opts` which are not options will passed
-  as `params` to the path helper function. For example, `@post`, which has an index of paginated
-  `@comments` would look like the following:
 
-      Kerosene.HTML.paginate(@conn, @comments, [@post], theme: :bootstrap, my_param: "foo")
-
-  You'll need to be sure to configure `:kerosene` with the `:route_helpers`
-  module (ex. MyApp.Routes.Helpers) in Phoenix. With that configured, the above would generate calls
-  to the `post_comment_path(@conn, :index, @post.id, my_param: "foo", page: page)` for each page link.
-
-  In times that it is necessary to override the automatic path function resolution, you may supply the
-  correct path function to use by adding an extra key in the `opts` parameter of `:path`.
+  You can override the path by adding an extra key in the `opts` parameter of `:path`.
   For example:
 
-      Kerosene.HTML.paginate(@conn, @comments, [@post], path: &post_comment_path/4)
-
-  Be sure to supply the function which accepts query string parameters (starts at arity 3, +1 for each relation),
-  because the `page` parameter will always be supplied. If you supply the wrong function you will receive a
-  function undefined exception.
+      Kerosene.HTML.paginate(@conn, @page, path: post_comment_path(@conn, :index, foo: "bar"))
   """
   defmacro __using__(_opts \\ []) do
     quote do
@@ -81,34 +65,17 @@ defmodule Kerosene.HTML do
     conn |> build_page_list(paginator, opts) |> render_page_list(paginator, opts)
   end
 
-  @doc """
-  Returns the raw data in order to generate the proper HTML for pagination links. Data
-  is returned in a `{text, page}` format where `text` is intended to be the text
-  of the link and `page` is the page it should go to. Defaults are already supplied
-  and they are as follows:
-
-      #{inspect @page_defaults}
-
-  `window` must be a positive non-zero integer or an exception is raised. `next` and `previous` should be
-  strings but can be anything you want as long as it is truthy, falsey values will remove
-  them from the output. `first` and `last` are only booleans, and they just include/remove
-  their respective link from output. An example of the data returned:
-
-      iex> Kerosene.HTML.raw_paginate(%{total_pages: 10, page: 5})
-      [{"<<", 4}, {1, 1}, {2, 2}, {3, 3}, {4, 4}, {5, 5}, {6, 6}, {7, 7}, {8, 8}, {9, 9}, {10, 10}, {">>", 6}]
-
-  Simply loop and pattern match over each item and transform it to your custom HTML.
-  """
-  def build_page_list(conn, paginator, options \\ []) do
-    options = Keyword.merge(@page_defaults, options)
+  @doc false
+  def build_page_list(conn, paginator, opts \\ []) do
+    opts = Keyword.merge(@page_defaults, opts)
 
     paginator.page
       |> previous_page
-      |> first_page(paginator.page, options[:window], options[:first])
-      |> page_list(paginator.page, paginator.total_pages, options[:window])
-      |> last_page(paginator.page, paginator.total_pages, options[:window], options[:last])
+      |> first_page(paginator.page, opts[:window], opts[:first])
+      |> page_list(paginator.page, paginator.total_pages, opts[:window])
+      |> last_page(paginator.page, paginator.total_pages, opts[:window], opts[:last])
       |> next_page(paginator.page, paginator.total_pages)
-      |> Enum.map(fn {label, page} -> {label, page, build_url(conn, page: page)} end)
+      |> Enum.map(fn {label, page} -> {label, page, build_url(conn, Keyword.merge(paginator.params, [page: page]))} end)
   end
 
   defp render_page_list(page_list, paginator, [theme: :bootstrap, path: path, params: _params, opts: _opts]) do
@@ -135,7 +102,6 @@ defmodule Kerosene.HTML do
   # Computing page number ranges
   defp page_list(list, page, total, window) when is_integer(window) and window >= 1 do
     page_list = left(page, window)..right(page, window, total) |> Enum.map(fn n -> {n, n} end)
-    IO.inspect page_list
     list ++ page_list
   end
   defp page_list(_list, _page, _total, _window) do

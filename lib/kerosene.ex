@@ -1,5 +1,5 @@
 defmodule Kerosene do
-  defstruct items: [], per_page: 10, page: 1, total_pages: 0, total_count: 0
+  defstruct items: [], per_page: 10, page: 1, total_pages: 0, total_count: 0, params: []
   import Ecto.Query
 
   defmacro __using__(opts \\ []) do
@@ -14,9 +14,9 @@ defmodule Kerosene do
     paginate(repo, query, merge_options(opts, params))
   end
 
-  def paginate(repo, query, params) do
-    per_page = get_per_page(params)
-    page = get_page(params)
+  def paginate(repo, query, opts) do
+    per_page = get_per_page(opts)
+    page = get_page(opts)
     total_count = get_total_count(repo, query)
 
     %Kerosene{
@@ -24,7 +24,8 @@ defmodule Kerosene do
       per_page: per_page,
       page: page,
       total_pages: get_total_pages(total_count, per_page),
-      total_count: total_count
+      total_count: total_count,
+      params: opts[:params]
     }
   end
 
@@ -60,9 +61,13 @@ defmodule Kerosene do
       |> to_integer
   end
 
-  def merge_options(opts, params) do
-    opts_from_params = for {key, val} <- params, into: [], do: {String.to_atom(key), val}
-    Keyword.merge(opts, opts_from_params)
+  defp merge_options(opts, params) do
+    keyword_params = to_keyword_list(params)
+    Keyword.merge(opts, (keyword_params ++ [params: keyword_params]))
+  end
+
+  def to_keyword_list(params) when is_map(params) do
+    for {key, val} <- params, into: [], do: {String.to_atom(key), val}
   end
 
   defp to_integer(i) when is_integer(i), do: i
