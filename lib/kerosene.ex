@@ -2,6 +2,10 @@ defmodule Kerosene do
   defstruct items: [], per_page: 10, page: 1, total_pages: 0, total_count: 0, params: []
   import Ecto.Query
 
+  @moduledoc """
+  
+  """
+
   defmacro __using__(opts \\ []) do
     quote do
       def paginate(query, params) do
