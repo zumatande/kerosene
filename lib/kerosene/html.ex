@@ -73,22 +73,22 @@ defmodule Kerosene.HTML do
       |> Enum.map(fn {label, page} -> {label, page, build_url(conn, Keyword.merge(paginator.params, [page: page]))} end)
   end
 
-  defp render_page_list(page_list, paginator, [theme: :bootstrap, path: path, params: _params, opts: _opts]) do
+  defp render_page_list(page_list, paginator, [theme: :bootstrap, path: _path, params: _params, opts: _opts]) do
     Kerosene.HTML.Boostrap.generate_links(page_list, paginator)
   end
-  defp render_page_list(page_list, paginator, [theme: :foundation, path: path, params: _params, opts: _opts]) do
+  defp render_page_list(page_list, paginator, [theme: :foundation, path: _path, params: _params, opts: _opts]) do
     Kerosene.HTML.Foundation.generate_links(page_list, paginator)
   end
-  defp render_page_list(page_list, paginator, [theme: :semantic, path: path, params: _params, opts: _opts]) do
+  defp render_page_list(page_list, paginator, [theme: :semantic, path: _path, params: _params, opts: _opts]) do
     Kerosene.HTML.Semantic.generate_links(page_list, paginator)
   end
-  defp render_page_list(page_list, paginator, opts) do
+  defp render_page_list(page_list, paginator, _opts) do
     generate_links(page_list, paginator)
   end
 
-  defp generate_links(page_list, paginator) do
+  defp generate_links(page_list, _paginator) do
     content_tag :nav, class: "pagination" do
-      for {label, page, path} <- page_list do
+      for {label, _page, path} <- page_list do
         link "#{label}", to: path
       end
     end

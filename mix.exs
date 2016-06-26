@@ -1,11 +1,12 @@
 defmodule Kerosene.Mixfile do
   use Mix.Project
-  @version "0.0.1"
+  @version "0.1.0"
 
   def project do
     [app: :kerosene,
      version: @version,
      elixir: "~> 1.2",
+     elixirc_paths: path(Mix.env),
      package: package,
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
@@ -22,8 +23,10 @@ defmodule Kerosene.Mixfile do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications: [:logger]]
+    [applications: application(Mix.env)]
   end
+  defp application(:test), do: [:postgrex, :ecto, :logger]
+  defp application(_), do: [:logger]
 
   # Dependencies can be Hex packages:
   #
@@ -36,12 +39,18 @@ defmodule Kerosene.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [{:phoenix_html, "~> 1.2"},
-     {:ecto, "~> 1.1"},
+     {:ecto, "~> 2.0"},
+     {:postgrex, "~> 0.11.0"},
      # Docs dependencies
      {:earmark, "~> 0.1", only: :docs},
      {:ex_doc, "~> 0.11", only: :docs},
      {:inch_ex, "~> 0.2", only: :docs}]
   end
+
+  defp path(:test) do
+    ["lib", "test/support"]
+  end
+  defp path(_), do: ["lib"]
 
   defp package do
     [maintainers: ["Ally Raza"],
