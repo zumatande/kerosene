@@ -23,7 +23,7 @@ The package is [available in Hex](https://hex.pm/packages/kerosene), the package
   3. You can start paginating your queries 
 
 		def index(conn, params) do
-    	  kerosene = Project
+    	  {items, kerosene} = Project
           |> Project.active
           |> Repo.paginate(params)
 
