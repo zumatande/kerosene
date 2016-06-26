@@ -38,7 +38,7 @@ defmodule Kerosene.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:phoenix_html, "~> 1.2"},
+    [{:phoenix_html, "~> 2.6"},
      {:ecto, "~> 2.0"},
      {:postgrex, "~> 0.11.0"},
      # Docs dependencies
