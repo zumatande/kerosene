@@ -2,10 +2,10 @@ defmodule Kerosene.HTML do
   use Phoenix.HTML
 
   @default [theme: :bootstrap, window: 5, next: "Next", previous: "Previous", first: true, last: true]
-  @themes [:bootstrap, :foundation, :semantic]
+  @themes [:bootstrap, :bootstrap4, :foundation, :semantic]
 
   @moduledoc """
-  Html helpers to render the pagination links and more, 
+  Html helpers to render the pagination links and more,
   import the `Kerosene.HTML` in your view module.
 
       defmodule MyApp.PostView do
@@ -73,17 +73,14 @@ defmodule Kerosene.HTML do
       |> Enum.map(fn {label, page} -> {label, page, build_url(conn, Keyword.merge(paginator.params, [page: page]))} end)
   end
 
-  defp render_page_list(page_list, paginator, [theme: :bootstrap, path: _path, params: _params, opts: _opts]) do
-    Kerosene.HTML.Boostrap.generate_links(page_list, paginator)
-  end
-  defp render_page_list(page_list, paginator, [theme: :foundation, path: _path, params: _params, opts: _opts]) do
-    Kerosene.HTML.Foundation.generate_links(page_list, paginator)
-  end
-  defp render_page_list(page_list, paginator, [theme: :semantic, path: _path, params: _params, opts: _opts]) do
-    Kerosene.HTML.Semantic.generate_links(page_list, paginator)
-  end
-  defp render_page_list(page_list, paginator, _opts) do
-    generate_links(page_list, paginator)
+  defp render_page_list(page_list, paginator, [theme: theme, path: _path, params: _params, opts: _opts]) do
+    case theme do
+      :bootstrap  -> Kerosene.HTML.Boostrap.generate_links(page_list, paginator)
+      :bootstrap4 -> Kerosene.HTML.Boostrap4.generate_links(page_list, paginator)
+      :foundation -> Kerosene.HTML.Foundation.generate_links(page_list, paginator)
+      :semantic   -> Kerosene.HTML.Semantic.generate_links(page_list, paginator)
+      _           -> generate_links(page_list, paginator)
+    end
   end
 
   defp generate_links(page_list, _paginator) do
