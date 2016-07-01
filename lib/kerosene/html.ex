@@ -1,7 +1,7 @@
 defmodule Kerosene.HTML do
   use Phoenix.HTML
 
-  @default [theme: :bootstrap, window: 5, next: "Next", previous: "Previous", first: true, last: true]
+  @default [theme: :bootstrap, window: 5, next_label: "Next", previous_label: "Previous", first: true, first_label: "First", last: true, last_label: "Last"]
   @themes [:bootstrap, :bootstrap4, :foundation, :semantic]
 
   @moduledoc """
@@ -19,7 +19,7 @@ defmodule Kerosene.HTML do
   Where `@page` is a `%Kerosene{}` struct returned from `Repo.paginate/2`.
 
   `paginate` helper takes keyword list of `options` and `params`.
-    <%= paginate @conn, @page, window: 5, next: ">>", previous: "<<", first: true, last: true %>
+    <%= paginate @conn, @page, window: 5, next_label: ">>", previous_label: "<<", first: true, last: true, first_label: "First", last_label: "Last" %>
   """
 
   @doc """
@@ -66,11 +66,22 @@ defmodule Kerosene.HTML do
 
     paginator.page
       |> previous_page
-      |> first_page(paginator.page, opts[:window], opts[:first])
+      |> first_page(paginator.page, opts[:window], opts[:opts][:first])
       |> page_list(paginator.page, paginator.total_pages, opts[:window])
-      |> last_page(paginator.page, paginator.total_pages, opts[:window], opts[:last])
       |> next_page(paginator.page, paginator.total_pages)
-      |> Enum.map(fn {label, page} -> {label, page, build_url(conn, Keyword.merge(paginator.params, [page: page]))} end)
+      |> last_page(paginator.page, paginator.total_pages, opts[:window], opts[:opts][:last])
+      |> Enum.map(fn {label, page} -> {label_text(label, opts), page, build_url(conn, Keyword.merge(paginator.params, [page: page]))} end)
+  end
+
+  defp label_text(label, opts) do
+    opts = opts[:opts]
+    case label do
+      :first    -> opts[:first_label]
+      :previous -> opts[:previous_label]
+      :next     -> opts[:next_label]
+      :last     -> opts[:last_label]
+      _         -> label
+    end
   end
 
   defp render_page_list(page_list, paginator, [theme: theme, path: _path, params: _params, opts: _opts]) do
