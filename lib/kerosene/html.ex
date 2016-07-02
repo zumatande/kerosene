@@ -1,7 +1,8 @@
 defmodule Kerosene.HTML do
   use Phoenix.HTML
+  alias Kerosene.HTML
 
-  @default [theme: :bootstrap, window: 5, next_label: "Next", previous_label: "Previous", first: true, first_label: "First", last: true, last_label: "Last"]
+  @default [theme: :bootstrap, window: 3, next_label: "Next", previous_label: "Previous", first: true, first_label: "First", last: true, last_label: "Last"]
   @themes [:bootstrap, :bootstrap4, :foundation, :semantic]
 
   @moduledoc """
@@ -51,30 +52,32 @@ defmodule Kerosene.HTML do
   end
 
   def paginate(conn, paginator, opts \\ [], params \\ []) do
-    merged_opts = build_options(opts)
-    path = merged_opts[:path] || build_url(conn, params)
-    do_paginate(conn, paginator, theme: merged_opts[:theme], path: path, params: params, opts: merged_opts)
-  end
+    path = opts[:path] || build_url(conn, params)
+    opts = build_options(Keyword.merge(opts, [path: path]), params)
 
-  defp do_paginate(conn, paginator, opts) do
-    conn |> build_page_list(paginator, opts) |> render_page_list(paginator, opts)
+    conn 
+    |> build_page_list(paginator, opts) 
+    |> render_page_list(opts)
   end
 
   @doc false
   def build_page_list(conn, paginator, opts \\ []) do
-    opts = Keyword.merge(@default, opts)
+    page = paginator.page
+    total_pages = paginator.total_pages
+    params = paginator.params
 
-    paginator.page
-      |> previous_page
-      |> first_page(paginator.page, opts[:window], opts[:opts][:first])
-      |> page_list(paginator.page, paginator.total_pages, opts[:window])
-      |> next_page(paginator.page, paginator.total_pages)
-      |> last_page(paginator.page, paginator.total_pages, opts[:window], opts[:opts][:last])
-      |> Enum.map(fn {label, page} -> {label_text(label, opts), page, build_url(conn, Keyword.merge(paginator.params, [page: page]))} end)
+    page
+    |> previous_page
+    |> first_page(page, opts[:window], opts[:first])
+    |> page_list(page, total_pages, opts[:window])
+    |> next_page(page, total_pages)
+    |> last_page(page, total_pages, opts[:window], opts[:last])
+    |> Enum.map(fn {l, p} -> 
+     {label_text(l, opts), p, build_url(conn, Keyword.merge(params, [page: p])), page == p} 
+    end)
   end
 
-  defp label_text(label, opts) do
-    opts = opts[:opts]
+  def label_text(label, opts) do
     case label do
       :first    -> opts[:first_label]
       :previous -> opts[:previous_label]
@@ -84,78 +87,69 @@ defmodule Kerosene.HTML do
     end
   end
 
-  defp render_page_list(page_list, paginator, [theme: theme, path: _path, params: _params, opts: _opts]) do
-    case theme do
-      :bootstrap  -> Kerosene.HTML.Boostrap.generate_links(page_list, paginator)
-      :bootstrap4 -> Kerosene.HTML.Boostrap4.generate_links(page_list, paginator)
-      :foundation -> Kerosene.HTML.Foundation.generate_links(page_list, paginator)
-      :semantic   -> Kerosene.HTML.Semantic.generate_links(page_list, paginator)
-      _           -> generate_links(page_list, paginator)
-    end
-  end
-
-  defp generate_links(page_list, _paginator) do
-    content_tag :nav, class: "pagination" do
-      for {label, _page, path} <- page_list do
-        link "#{label}", to: path
-      end
+  def render_page_list(page_list, opts) do
+    case opts[:theme] do
+      :bootstrap  -> HTML.Boostrap.generate_links(page_list)
+      :bootstrap4 -> HTML.Boostrap4.generate_links(page_list)
+      :foundation -> HTML.Foundation.generate_links(page_list)
+      :semantic   -> HTML.Semantic.generate_links(page_list)
+      _           -> HTML.Simple.generate_links(page_list)
     end
   end
 
   # Computing page number ranges
-  defp page_list(list, page, total, window) when is_integer(window) and window >= 1 do
-    page_list = left(page, window)..right(page, window, total) |> Enum.map(fn n -> {n, n} end)
+  def page_list(list, page, total, window) when is_integer(window) and window >= 1 do
+    page_list = left(page, window)..right(page, window, total) 
+    |> Enum.map(fn n -> {n, n} end)
     list ++ page_list
   end
-  defp page_list(_list, _page, _total, _window) do
+  def page_list(_list, _page, _total, _window) do
     raise "Kerosene.HTML: window cannot be less than one."
   end
 
-  defp left(page, window) when page - window < 1 do
+  def left(page, window) when page - window < 1 do
     page - (window + (page - window - 1))
   end
-  defp left(page, window), do: page - window
+  def left(page, window), do: page - window
 
-  defp right(page, _window, 0), do: page
-  defp right(page, window, total) when page + window >= total do
+  def right(page, _window, 0), do: page
+  def right(page, window, total) when page + window >= total do
     total
   end
-  defp right(page, window, _total), do: page + window
+  def right(page, window, _total), do: page + window
 
-  defp previous_page(page) when page > 1 do
+  def previous_page(page) when page > 1 do
     [{:previous, page - 1}]
   end
-  defp previous_page(_page), do: []
+  def previous_page(_page), do: []
 
-  defp next_page(list, page, total) when page < total do
+  def next_page(list, page, total) when page < total do
     list ++ [{:next, page + 1}]
   end
-  defp next_page(list, _page, _total), do: list
+  def next_page(list, _page, _total), do: list
 
-  defp first_page(list, page, window, true) when page - window > 1 do
+  def first_page(list, page, window, true) when page - window > 1 do
     [{:first, 1} | list]
   end
-  defp first_page(list, _page, _window, _included), do: list
+  def first_page(list, _page, _window, _included), do: list
 
-  defp last_page(list, page, total, window, true) when page + window < total do
+  def last_page(list, page, total, window, true) when page + window < total do
     list ++ [{:last, total}]
   end
-  defp last_page(list, _page, _total, _window, _included), do: list
+  def last_page(list, _page, _total, _window, _included), do: list
 
-  defp build_url(conn, []), do: conn.request_path
-  defp build_url(conn, params) do
+  def build_url(conn, []), do: conn.request_path
+  def build_url(conn, params) do
     "#{conn.request_path}?#{build_query(params)}"
   end
 
-  defp build_query(params) do
-    params
-      |> Enum.map(fn {key, value} -> "#{key}=#{value}" end)
-      |> Enum.join("&")
+  def build_query(params) do
+    params |> URI.encode_query
   end
 
-  defp build_options(opts) do
+  defp build_options(opts, params) do
     theme = opts[:theme] || Application.get_env(:kerosene, :theme, :bootstrap)
-    opts = Keyword.merge(opts, [theme: theme])
+    opts = Keyword.merge(opts, [params: params, theme: theme])
     Keyword.merge(@default, opts)
   end
 end
