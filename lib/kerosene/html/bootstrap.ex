@@ -14,5 +14,5 @@ defmodule Kerosene.HTML.Boostrap do
   end
 
   defp build_html_class(true), do: "active"
-  defp build_html_class(_), do: ""
+  defp build_html_class(_), do: nil
 end

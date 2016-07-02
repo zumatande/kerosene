@@ -6,7 +6,6 @@ defmodule Kerosene.HTML.SemanticTest do
 
   test "renders Semantic pagination markup" do
     page_list = HTMLRenderersInputData.page_list
-    paginator = HTMLRenderersInputData.paginator
 
     valid_html_markup = """
       <nav class="ui pagination menu">\
@@ -28,7 +27,7 @@ defmodule Kerosene.HTML.SemanticTest do
       </nav>\
       """
 
-    safe_html_tree      = Semantic.generate_links(page_list, paginator)
+    safe_html_tree      = Semantic.generate_links(page_list)
     rendered_pagination = Phoenix.HTML.safe_to_string(safe_html_tree)
 
     assert rendered_pagination == valid_html_markup
