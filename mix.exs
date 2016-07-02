@@ -48,7 +48,7 @@ defmodule Kerosene.Mixfile do
   end
 
   defp path(:test) do
-    ["lib", "test/support"]
+    ["lib", "test/support", "test/fixtures"]
   end
   defp path(_), do: ["lib"]
 
