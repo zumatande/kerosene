@@ -15,7 +15,7 @@ The package is [available in Hex](https://hex.pm/packages/kerosene), the package
 
   2. Add Kerosene to your `repo.ex`:
 
-        defmodule Testapp.Repo do
+        defmodule MyApp.Repo do
           use Ecto.Repo, otp_app: :testapp
           use Kerosene, per_page: 2
         end
@@ -23,9 +23,10 @@ The package is [available in Hex](https://hex.pm/packages/kerosene), the package
   3. You can start paginating your queries 
 
         def index(conn, params) do
-          {products, kerosene} = Product
-            |> Product.active
-            |> Repo.paginate(params)
+          {products, kerosene} = 
+          Product
+          |> Product.with_lowest_price
+          |> Repo.paginate(params)
 
           render(conn, "index.html", products: products, kerosene: kerosene)
         end
@@ -48,9 +49,9 @@ The package is [available in Hex](https://hex.pm/packages/kerosene), the package
 Please do send pull requests and bug reports, positive feedback is always welcome.
 
 
-## Acknowledgements
+## Acknowledgement
 
-I would like to Thanks
+I would like to Thank
 
     * Matt (@mgwidmann)
     * Drew Olson (@drewolson)
