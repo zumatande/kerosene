@@ -1,6 +1,6 @@
-defmodule Kerosene.HTMLTest do
+defmodule Kerosene.PaginatorTest do
   use ExUnit.Case, async: true
-  import Kerosene.HTML
+  import Kerosene.Paginator
 
   test "next page only if there are more pages" do
     assert next_page([], 10, 10) == []
@@ -14,38 +14,34 @@ defmodule Kerosene.HTMLTest do
   end
 
   test "generate first page" do
-    page = 5
-    lower_page = 3
-    window = 3
-    show_first = true
-    assert first_page([], page, window, show_first) == [{:first, 1}]
-    assert first_page([], page, window, not show_first) == []
-    assert first_page([], lower_page, window, show_first) == []
+    assert first_page([], 5, 3, true) == [{:first, 1}]
+    assert first_page([], 5, 3, false) == []
+    assert first_page([], 3, 3, true) == []
   end
 
   test "generate last page" do
-    total = 10
-    page = 2
-    higher_page = 5
-    window = 3
-    show_last = true
-    assert last_page([], page, total, window, show_last) == [{:last, 10}]
-    assert last_page([], page, total, window, not show_last) == []
-    assert last_page([], higher_page, total, window, not show_last) == []
+    assert last_page([], 5, 10, 3, true) == [{:last, 10}]
+    assert last_page([], 5, 10, 3, false) == []
+    assert last_page([], 5, 10, 3, false) == []
   end
 
   test "encode query params" do
     params = [query: "foo", page: 2, per_page: 10]
     expected = "query=foo&page=2&per_page=10"
-
     assert build_query(params) == expected
   end
 
   test "build full abs url with params" do
     params = [query: "foo", page: 2, per_page: 10]
-    expected = "http://localhost:4000/products?query=foo&page=2&per_page=10"
     conn = %{request_path: "http://localhost:4000/products"}
+    expected = "http://localhost:4000/products?query=foo&page=2&per_page=10"
     assert build_url(conn, params) == expected
+  end
 
+  test "build full abs url with invalid params" do
+    params = nil
+    conn = %{request_path: "http://localhost:4000/products"}
+    expected = "http://localhost:4000/products"
+    assert build_url(conn, params) == expected
   end
 end

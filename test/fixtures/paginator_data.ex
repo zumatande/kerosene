@@ -1,4 +1,4 @@
-defmodule HTMLRenderersInputData do
+defmodule PaginatorData do
   def page_list() do
     [
       {"First", 1, "/products?category=25&page=1", false},

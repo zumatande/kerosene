@@ -5,7 +5,7 @@ defmodule Kerosene.HTML.BoostrapTest do
   alias Kerosene.HTML.Boostrap
 
   test "renders Boostrap 3 pagination markup" do
-    page_list = HTMLRenderersInputData.page_list
+    page_list = PaginatorData.page_list
 
     valid_html_markup = """
       <nav>\

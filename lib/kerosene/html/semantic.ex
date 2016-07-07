@@ -3,8 +3,8 @@ defmodule Kerosene.HTML.Semantic do
 
   def generate_links(page_list) do
     content_tag :nav, class: "ui pagination menu" do
-      for {label, _page, path, active} <- page_list do
-        link "#{label}", to: path, class: build_html_class(active)
+      for {label, _page, url, current} <- page_list do
+        link "#{label}", to: url, class: build_html_class(current)
       end
     end
   end

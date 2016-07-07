@@ -5,7 +5,7 @@ defmodule Kerosene.HTML.FoundationTest do
   alias Kerosene.HTML.Foundation
 
   test "renders Foundation pagination markup" do
-    page_list = HTMLRenderersInputData.page_list
+    page_list = PaginatorData.page_list
 
     valid_html_markup = """
       <ul class="pagination" role="pagination">\

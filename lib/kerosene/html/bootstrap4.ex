@@ -4,9 +4,9 @@ defmodule Kerosene.HTML.Boostrap4 do
   def generate_links(page_list) do
     content_tag :nav do
       content_tag :ul, class: "pagination" do
-        for {label, _page, path, active} <- page_list do
-          content_tag :li, class: build_html_class(active) do
-            link "#{label}", to: path, class: "page-link"
+        for {label, _page, url, current} <- page_list do
+          content_tag :li, class: build_html_class(current) do
+            link "#{label}", to: url, class: "page-link"
           end
         end
       end

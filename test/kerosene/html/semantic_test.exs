@@ -5,7 +5,7 @@ defmodule Kerosene.HTML.SemanticTest do
   alias Kerosene.HTML.Semantic
 
   test "renders Semantic pagination markup" do
-    page_list = HTMLRenderersInputData.page_list
+    page_list = PaginatorData.page_list
 
     valid_html_markup = """
       <nav class="ui pagination menu">\
