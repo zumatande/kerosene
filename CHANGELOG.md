@@ -1,8 +1,12 @@
+## v0.1.2 (2016-07-07)
+* Add support for json format
+
 ## v0.1.1 (2016-07-02)
 * Bugfix previous,next link order
 * Add tests for html helpers
 * Add fixtures and tests for html links
 * Minor refactorings
+
 ## v0.1.0 (2016-06-25)
 * Update deps
 * Buxfix minor

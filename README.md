@@ -7,20 +7,21 @@ Pagination for Ecto and Phoenix.
 
 The package is [available in Hex](https://hex.pm/packages/kerosene), the package can be installed as:
 
-  1. Add kerosene to your list of dependencies in `mix.exs`:
+  Add kerosene to your list of dependencies in `mix.exs`:
 
         def deps do
-          [{:kerosene, "~> 0.1.0"}]
+          [{:kerosene, "~> 0.2.0"}]
         end
 
-  2. Add Kerosene to your `repo.ex`:
+  Add Kerosene to your `repo.ex`:
 
         defmodule MyApp.Repo do
           use Ecto.Repo, otp_app: :testapp
           use Kerosene, per_page: 2
         end
 
-  3. You can start paginating your queries 
+## Usage
+  Start paginating your queries 
 
         def index(conn, params) do
           {products, kerosene} = 
@@ -31,18 +32,38 @@ The package is [available in Hex](https://hex.pm/packages/kerosene), the package
           render(conn, "index.html", products: products, kerosene: kerosene)
         end
 
-  4. Add view helpers to your view 
+  Add view helpers to your view 
 
         defmodule MyApp.ProductView do
           use MyApp.Web, :view
           import Kerosene.HTML
         end
 
-  5. Generate the links using the view helpers
+  Generate the links using the view helpers
 
         <%= paginate @conn, @kerosene %>
 
-  Note: you can also send in opts for the helper look at the docs for more details
+  Building apis or SPA's, no problem Kerosene has support for Json.
+
+      defmodule MyApp.ProductView do
+          use MyApp.Web, :view
+          import Kerosene.JSON
+
+          def render("index.json", %{products: products, kerosene: kerosene, conn: conn}) do
+            %{data: render_many(products, MyApp.ProductView, "product.json"),
+              pagination: paginate(conn, kerosene)}
+          end
+
+          def render("product.json", %{product: product}) do
+            %{id: product.id,
+              name: product.name,
+              description: product.description,
+              price: product.price}
+          end
+        end
+
+
+  You can also send in options to paginate helper look at the docs for more details.
 
 ## Contributing
 	
