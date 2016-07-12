@@ -7,63 +7,70 @@ Pagination for Ecto and Phoenix.
 
 The package is [available in Hex](https://hex.pm/packages/kerosene), the package can be installed as:
 
-  Add kerosene to your list of dependencies in `mix.exs`:
+Add kerosene to your list of dependencies in `mix.exs`:
+```elixir
+def deps do
+  [{:kerosene, "~> 0.2.0"}]
+end
+```
 
-        def deps do
-          [{:kerosene, "~> 0.2.0"}]
-        end
-
-  Add Kerosene to your `repo.ex`:
-
-        defmodule MyApp.Repo do
-          use Ecto.Repo, otp_app: :testapp
-          use Kerosene, per_page: 2
-        end
+Add Kerosene to your `repo.ex`:
+```elixir
+defmodule MyApp.Repo do
+  use Ecto.Repo, otp_app: :testapp
+  use Kerosene, per_page: 2
+end
+```
 
 ## Usage
-  Start paginating your queries 
+Start paginating your queries 
+```elixir
+def index(conn, params) do
+  {products, kerosene} = 
+  Product
+  |> Product.with_lowest_price
+  |> Repo.paginate(params)
 
-        def index(conn, params) do
-          {products, kerosene} = 
-          Product
-          |> Product.with_lowest_price
-          |> Repo.paginate(params)
+  render(conn, "index.html", products: products, kerosene: kerosene)
+end
+```
 
-          render(conn, "index.html", products: products, kerosene: kerosene)
-        end
+Add view helpers to your view 
+```elixir
+defmodule MyApp.ProductView do
+  use MyApp.Web, :view
+  import Kerosene.HTML
+end
+```
 
-  Add view helpers to your view 
+Generate the links using the view helpers
+```elixir
+<%= paginate @conn, @kerosene %>
+```
 
-        defmodule MyApp.ProductView do
-          use MyApp.Web, :view
-          import Kerosene.HTML
-        end
+Building apis or SPA's, no problem Kerosene has support for Json.
 
-  Generate the links using the view helpers
+```elixir
+defmodule MyApp.ProductView do
+  use MyApp.Web, :view
+  import Kerosene.JSON
 
-        <%= paginate @conn, @kerosene %>
+  def render("index.json", %{products: products, kerosene: kerosene, conn: conn}) do
+    %{data: render_many(products, MyApp.ProductView, "product.json"),
+      pagination: paginate(conn, kerosene)}
+  end
 
-  Building apis or SPA's, no problem Kerosene has support for Json.
-
-      defmodule MyApp.ProductView do
-          use MyApp.Web, :view
-          import Kerosene.JSON
-
-          def render("index.json", %{products: products, kerosene: kerosene, conn: conn}) do
-            %{data: render_many(products, MyApp.ProductView, "product.json"),
-              pagination: paginate(conn, kerosene)}
-          end
-
-          def render("product.json", %{product: product}) do
-            %{id: product.id,
-              name: product.name,
-              description: product.description,
-              price: product.price}
-          end
-        end
+  def render("product.json", %{product: product}) do
+    %{id: product.id,
+      name: product.name,
+      description: product.description,
+      price: product.price}
+  end
+end
+```
 
 
-  You can also send in options to paginate helper look at the docs for more details.
+You can also send in options to paginate helper look at the docs for more details.
 
 ## Contributing
 	
@@ -74,9 +81,9 @@ Please do send pull requests and bug reports, positive feedback is always welcom
 
 I would like to Thank
 
-    * Matt (@mgwidmann)
-    * Drew Olson (@drewolson)
-    * Akira Matsuda (@amatsuda)
+* Matt (@mgwidmann)
+* Drew Olson (@drewolson)
+* Akira Matsuda (@amatsuda)
 
 ## License
 
