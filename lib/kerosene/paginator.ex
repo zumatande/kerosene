@@ -11,7 +11,7 @@ defmodule Kerosene.Paginator do
   def paginate(conn, paginator, opts \\ []) do
     page = paginator.page
     total_pages = paginator.total_pages
-    params = paginator.params
+    params = build_params(paginator.params, opts[:params])
 
     page
     |> previous_page
@@ -20,7 +20,7 @@ defmodule Kerosene.Paginator do
     |> next_page(page, total_pages)
     |> last_page(page, total_pages, opts[:window], opts[:last])
     |> Enum.map(fn {l, p} -> 
-     {label_text(l, opts), p, build_url(conn, Keyword.merge(params, [page: p])), page == p} 
+     {label_text(l, opts), p, build_url(conn, Map.put(params, "page", p)), page == p} 
     end)
   end
 
@@ -89,10 +89,19 @@ defmodule Kerosene.Paginator do
     params |> URI.encode_query
   end
 
-  def build_options(conn, opts) do
-    path = opts[:path] || build_url(conn, opts[:params])
+  def build_params(params, params2) do
+    Map.merge(params, params2) |> normalize_keys
+  end
+
+  def normalize_keys(params) when is_map(params) do
+    for {key, val} <- params, into: %{}, do: {to_string(key), val}
+  end
+  def normalize_keys(params), do: params
+
+  def build_options(opts) do
+    params = opts[:params] || %{}
     theme = opts[:theme] || Application.get_env(:kerosene, :theme, :bootstrap)
-    opts = Keyword.merge(opts, [theme: theme, path: path])
+    opts = Keyword.merge(opts, [params: params, theme: theme])
     Keyword.merge(@default, opts)
   end
 end

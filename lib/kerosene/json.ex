@@ -1,6 +1,6 @@
 defmodule Kerosene.JSON do
   use Phoenix.HTML
-  import Kerosene.Paginator, only: [build_options: 2]
+  import Kerosene.Paginator, only: [build_options: 1]
 
   @moduledoc """
   JSON helpers to render the pagination links in json format.
@@ -29,7 +29,7 @@ defmodule Kerosene.JSON do
   end
 
   def paginate(conn, paginator, opts \\ []) do
-    opts = build_options(conn, opts)
+    opts = build_options(opts)
 
     Kerosene.Paginator.paginate(conn, paginator, opts)
     |> render_page_list()

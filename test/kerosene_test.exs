@@ -16,36 +16,21 @@ defmodule KeroseneTest do
 
   test "returns set per_page" do
     create_products
-
-    {_items, kerosene} = Product
-      |> Repo.paginate(per_page: 5)
-
+    {_items, kerosene} = Product |> Repo.paginate(%{}, per_page: 5)
     assert kerosene.per_page == 5
   end
 
   test "have total pages based on per_page" do
     create_products
-
-    {_items, kerosene} = Product
-      |> Repo.paginate(per_page: 5)
-
+    {_items, kerosene} = Product |> Repo.paginate(%{}, per_page: 5)
     assert kerosene.total_pages == 2 
   end
 
   test "uses default config" do
     create_products
-
-    {_items, kerosene} = Product
-      |> Repo.paginate
-
+    {_items, kerosene} = Product |> Repo.paginate(%{})
     assert kerosene.total_pages == 1 
     assert kerosene.page == 1
-  end
-
-  test "convert params to keyword list" do
-    params = %{"page" => 10, "per_page" => 100}
-    keyword_params = [page: 10, per_page: 100]
-    assert Kerosene.to_keyword_list(params) == keyword_params
   end
 
   test "work out total pages" do

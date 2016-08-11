@@ -1,7 +1,7 @@
 defmodule Kerosene.HTML do
   use Phoenix.HTML
   alias Kerosene.HTML
-  import Kerosene.Paginator, only: [build_options: 2]
+  import Kerosene.Paginator, only: [build_options: 1]
 
   @themes [:bootstrap, :bootstrap4, :foundation, :semantic]
 
@@ -48,7 +48,7 @@ defmodule Kerosene.HTML do
   end
 
   def paginate(conn, paginator, opts \\ []) do
-    opts = build_options(conn, opts)
+    opts = build_options(opts)
 
     conn 
     |> Kerosene.Paginator.paginate(paginator, opts) 

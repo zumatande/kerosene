@@ -8,8 +8,9 @@ defmodule Kerosene do
 
   defmacro __using__(opts \\ []) do
     quote do
-      def paginate(query, params \\ []) do
-        Kerosene.paginate(__MODULE__, query, params, unquote(opts))
+      def paginate(query, params \\ %{}, options \\ []) do
+        opts = Keyword.merge(unquote(opts), options)
+        Kerosene.paginate(__MODULE__, query, params, opts)
       end
     end
   end
@@ -43,12 +44,25 @@ defmodule Kerosene do
   end
 
   defp get_total_count(repo, query) do
+    primary_key = get_primary_key(query)
+
     query
     |> exclude(:preload)
     |> exclude(:order_by)
     |> exclude(:select)
-    |> select([i], count(i.id))
+    |> select([i], count(field(i, ^primary_key), :distinct))
     |> repo.one
+  end
+
+  def get_primary_key(query) do
+    new_query = case is_map(query) do
+      true -> query.from |> elem(1)
+      _ -> query
+    end
+
+    new_query
+    |> apply(:__schema__, [:primary_key])
+    |> hd
   end
 
   def get_total_pages(count, per_page) do
@@ -68,14 +82,10 @@ defmodule Kerosene do
   end
 
   defp merge_options(opts, params) do
-    keyword_params = to_keyword_list(params)
-    Keyword.merge(opts, (keyword_params ++ [params: keyword_params]))
+    page = Map.get(params, "page", 1)
+    per_page = Map.get(params, "per_page", opts[:per_page])
+    Keyword.merge(opts, [page: page, per_page: per_page, params: params])
   end
-
-  def to_keyword_list(params) when is_map(params) do
-    for {key, val} <- params, into: [], do: {String.to_atom(key), val}
-  end
-  def to_keyword_list(params), do: params
 
   def to_integer(i) when is_integer(i), do: i
   def to_integer(i) when is_binary(i), do: String.to_integer(i)
