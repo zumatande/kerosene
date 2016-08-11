@@ -1,3 +1,7 @@
+## v0.3.0 (2016-08-11)
+* Add support auto primary keys
+* Bugfix params for html helpers
+
 ## v0.1.2 (2016-07-07)
 * Add support for json format
 
