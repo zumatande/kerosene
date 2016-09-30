@@ -1,6 +1,6 @@
 defmodule Kerosene.Mixfile do
   use Mix.Project
-  @version "0.3.0"
+  @version "0.4.0"
 
   def project do
     [app: :kerosene,
@@ -38,7 +38,7 @@ defmodule Kerosene.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:phoenix_html, "~> 2.6"},
+    [{:phoenix_html, "~> 2.7"},
      {:plug, "~> 1.0"},
      {:ecto, "~> 2.0"},
      {:postgrex, "~> 0.11.0"},

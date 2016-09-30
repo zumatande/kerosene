@@ -1,3 +1,6 @@
+## v0.4.0 (2016-10-01)
+* Bugfix handle list in query params
+
 ## v0.3.0 (2016-08-11)
 * Add support auto primary keys
 * Bugfix params for html helpers
