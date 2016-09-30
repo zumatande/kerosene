@@ -86,7 +86,7 @@ defmodule Kerosene.Paginator do
   Constructs a query param from a keyword list
   """
   def build_query(params) do
-    params |> URI.encode_query
+    params |> Plug.Conn.Query.encode
   end
 
   def build_params(params, params2) do
