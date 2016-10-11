@@ -41,7 +41,8 @@ defmodule Kerosene.Mixfile do
     [{:phoenix_html, "~> 2.7"},
      {:plug, "~> 1.0"},
      {:ecto, "~> 2.0"},
-     {:postgrex, "~> 0.11.0"},
+     # Test dependencies
+     {:postgrex, "~> 0.11.0", only: [:test]},
      # Docs dependencies
      {:earmark, "~> 0.1", only: :docs},
      {:ex_doc, "~> 0.11", only: :docs},
