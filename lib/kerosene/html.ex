@@ -40,6 +40,11 @@ defmodule Kerosene.HTML do
   For example:
 
       Kerosene.HTML.paginate(@conn, @kerosene, path: product_path(@conn, :index, foo: "bar"))
+
+  Additional panigation class can be added by adding setting `:class` in the `opts`.
+  For example:
+
+      Kerosene.HTML.paginate(@conn, @kerosene, theme: :boostrap4, class: "paginate-sm")
   """
   defmacro __using__(_opts \\ []) do
     quote do
@@ -57,11 +62,11 @@ defmodule Kerosene.HTML do
 
   defp render_page_list(page_list, opts) do
     case opts[:theme] do
-      :bootstrap  -> HTML.Boostrap.generate_links(page_list)
-      :bootstrap4 -> HTML.Boostrap4.generate_links(page_list)
-      :foundation -> HTML.Foundation.generate_links(page_list)
-      :semantic   -> HTML.Semantic.generate_links(page_list)
-      _           -> HTML.Simple.generate_links(page_list)
+      :bootstrap  -> HTML.Bootstrap.generate_links(page_list, opts[:class])
+      :bootstrap4 -> HTML.Bootstrap4.generate_links(page_list, opts[:class])
+      :foundation -> HTML.Foundation.generate_links(page_list, opts[:class])
+      :semantic   -> HTML.Semantic.generate_links(page_list, opts[:class])
+      _           -> HTML.Simple.generate_links(page_list, opts[:class])
     end
   end
 end
