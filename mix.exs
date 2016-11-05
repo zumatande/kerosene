@@ -1,6 +1,6 @@
 defmodule Kerosene.Mixfile do
   use Mix.Project
-  @version "0.4.0"
+  @version "0.5.0"
 
   def project do
     [app: :kerosene,
@@ -11,6 +11,7 @@ defmodule Kerosene.Mixfile do
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      deps: deps,
+     aliases: aliases,
      name: "Kerosene",
      docs: [source_ref: "v#{@version}", main: "Kerosene"],
      source_url: "https://github.com/elixirdrops/kerosene",
@@ -42,7 +43,7 @@ defmodule Kerosene.Mixfile do
      {:plug, "~> 1.0"},
      {:ecto, "~> 2.0"},
      # Test dependencies
-     {:postgrex, "~> 0.11.0", only: [:test]},
+     {:postgrex, "~> 0.12.0", only: [:test]},
      # Docs dependencies
      {:earmark, "~> 0.1", only: :docs},
      {:ex_doc, "~> 0.11", only: :docs},
@@ -60,5 +61,9 @@ defmodule Kerosene.Mixfile do
      links: %{github: "https://github.com/elixirdrops/kerosene"},
      files: ~w(lib test config) ++
             ~w(CHANGELOG.md LICENSE.md mix.exs README.md)]
+  end
+
+  def aliases do
+    ["test": ["ecto.create --quite", "ecto.migrate --quite", "test"]]
   end
 end
