@@ -2,6 +2,7 @@ defmodule Kerosene.Paginator do
   use Phoenix.HTML
 
   @default [window: 3, next_label: "Next", previous_label: "Previous", first: true, first_label: "First", last: true, last_label: "Last"]
+  @simple [window: 0, first: false, first_label: "", last: false, last_label: ""]
 
   @moduledoc """
   Helpers to render the pagination links and more.
@@ -42,8 +43,8 @@ defmodule Kerosene.Paginator do
     |> Enum.map(fn n -> {n, n} end)
     list ++ page_list
   end
-  def page_list(_list, _page, _total, _window) do
-    raise "Window cannot be less than one."
+  def page_list(list, _page, _total, _window) do
+    list
   end
 
   def left(page, window) when page - window < 1 do
@@ -100,8 +101,13 @@ defmodule Kerosene.Paginator do
 
   def build_options(opts) do
     params = opts[:params] || %{}
-    theme = opts[:theme] || Application.get_env(:kerosene, :theme, :bootstrap)
-    opts = Keyword.merge(opts, [params: params, theme: theme])
-    Keyword.merge(@default, opts)
+    theme  = opts[:theme]  || Application.get_env(:kerosene, :theme, :bootstrap)
+    mode   = opts[:mode]   || Application.get_env(:kerosene, :mode,  :default)
+    opts   = Keyword.merge(opts, [params: params, theme: theme, mode: mode])
+
+    case Keyword.fetch(opts, :mode) do
+      {:ok, :simple}  -> @default |> Keyword.merge(@simple) |> Keyword.merge(opts)
+      {:ok, :default} -> Keyword.merge(@default, opts)
+    end
   end
 end
