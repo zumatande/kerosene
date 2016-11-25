@@ -48,6 +48,18 @@ Generate the links using the view helpers
 <%= paginate @conn, @kerosene %>
 ```
 
+Kerosene provides a [list ](https://hexdocs.pm/kerosene/Kerosene.HTML.html#__using__/1) of themes for pagination. By default it uses bootstrap. To use some other, add to config/config.exs:
+```elixir
+config :kerosene,
+	theme: :foundation
+```
+
+If you need reduced number of links in pagination, you can use `simple mode` option, to display only Prev/Next links:
+```elixir
+config :kerosene,
+	mode:  :simple
+```
+
 Building apis or SPA's, no problem Kerosene has support for Json.
 
 ```elixir
