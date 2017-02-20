@@ -46,12 +46,14 @@ defmodule Kerosene do
   defp get_total_count(repo, query) do
     primary_key = get_primary_key(query)
 
-    query
-    |> exclude(:preload)
-    |> exclude(:order_by)
-    |> exclude(:select)
-    |> select([i], count(field(i, ^primary_key), :distinct))
-    |> repo.one
+    total_pages =
+      query
+      |> exclude(:preload)
+      |> exclude(:order_by)
+      |> exclude(:select)
+      |> select([i], count(field(i, ^primary_key), :distinct))
+      |> repo.one
+    total_pages || 0
   end
 
   def get_primary_key(query) do
