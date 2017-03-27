@@ -23,13 +23,13 @@ defmodule KeroseneTest do
   test "have total pages based on per_page" do
     create_products()
     {_items, kerosene} = Product |> Repo.paginate(%{}, per_page: 5)
-    assert kerosene.total_pages == 2 
+    assert kerosene.total_pages == 2
   end
 
   test "uses default config" do
     create_products()
     {_items, kerosene} = Product |> Repo.paginate(%{})
-    assert kerosene.total_pages == 1 
+    assert kerosene.total_pages == 1
     assert kerosene.page == 1
   end
 
@@ -38,6 +38,20 @@ defmodule KeroseneTest do
     per_page = 10
     total_pages = 10
     assert Kerosene.get_total_pages(row_count, per_page) == total_pages
+  end
+
+  test "uses total_count provided via opts" do
+    create_products()
+    {_items, kerosene} = Product |> Repo.paginate(%{}, total_count: 3, per_page: 5)
+    assert kerosene.total_count == 3
+    assert kerosene.total_pages == 1
+  end
+
+  test "fallbacks to count query when provided total_count is nil" do
+    create_products()
+    {_items, kerosene} = Product |> Repo.paginate(%{}, total_count: nil, per_page: 5)
+    assert kerosene.total_count == 10
+    assert kerosene.total_pages == 2
   end
 
   test "return integer from binary" do

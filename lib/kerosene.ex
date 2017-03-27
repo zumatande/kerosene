@@ -22,7 +22,7 @@ defmodule Kerosene do
   def paginate(repo, query, opts) do
     per_page = get_per_page(opts)
     page = get_page(opts)
-    total_count = get_total_count(repo, query)
+    total_count = get_total_count(opts[:total_count], repo, query)
 
     kerosene = %Kerosene {
       per_page: per_page,
@@ -43,7 +43,8 @@ defmodule Kerosene do
     |> repo.all
   end
 
-  defp get_total_count(repo, query) do
+  defp get_total_count(count, _repo, _query) when is_integer(count) and count >= 0, do: count
+  defp get_total_count(_count, repo, query) do
     primary_key = get_primary_key(query)
 
     total_pages =
@@ -72,14 +73,14 @@ defmodule Kerosene do
   end
 
   def get_per_page(params) do
-    params 
-    |> Keyword.get(:per_page, 10) 
+    params
+    |> Keyword.get(:per_page, 10)
     |> to_integer
   end
 
   def get_page(params) do
-    params 
-    |> Keyword.get(:page, 1) 
+    params
+    |> Keyword.get(:page, 1)
     |> to_integer
   end
 
