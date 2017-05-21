@@ -8,7 +8,7 @@ defmodule KeroseneTest do
   end
 
   defp create_products do
-    for _ <- 1..10 do
+    for _ <- 1..15 do
       %Product { name: "Product 1", price: 100.00 }
       |> Repo.insert!
     end
@@ -27,17 +27,26 @@ defmodule KeroseneTest do
     assert kerosene.per_page == 5
   end
 
+  test "returns all the records" do
+    create_products()
+    {items, kerosene} = Product |> Repo.paginate(%{}, per_page: nil)
+    assert length(items) == 15
+    assert kerosene.total_pages == 1
+    assert kerosene.total_count == 15
+  end
+
   test "have total pages based on per_page" do
     create_products()
     {_items, kerosene} = Product |> Repo.paginate(%{}, per_page: 5)
-    assert kerosene.total_pages == 2
+    assert kerosene.total_pages == 3
   end
 
   test "uses default config" do
     create_products()
-    {_items, kerosene} = Product |> Repo.paginate(%{})
-    assert kerosene.total_pages == 1
+    {items, kerosene} = Product |> Repo.paginate(%{})
+    assert kerosene.total_pages == 2
     assert kerosene.page == 1
+    assert length(items) == 10
   end
 
   test "work out total pages" do
@@ -57,8 +66,8 @@ defmodule KeroseneTest do
   test "fallbacks to count query when provided total_count is nil" do
     create_products()
     {_items, kerosene} = Product |> Repo.paginate(%{}, total_count: nil, per_page: 5)
-    assert kerosene.total_count == 10
-    assert kerosene.total_pages == 2
+    assert kerosene.total_count == 15
+    assert kerosene.total_pages == 3
   end
 
   test "builds correct count query when group_by clause is present" do

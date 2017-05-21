@@ -35,6 +35,7 @@ defmodule Kerosene do
     {get_items(repo, query, per_page, page), kerosene}
   end
 
+  defp get_items(repo, query, nil, _), do: repo.all(query)
   defp get_items(repo, query, per_page, page) do
     offset = per_page * (page - 1)
     query
@@ -73,14 +74,16 @@ defmodule Kerosene do
     |> hd
   end
 
+  def get_total_pages(_, nil), do: 1
   def get_total_pages(count, per_page) do
     Float.ceil(count / per_page) |> trunc
   end
 
   def get_per_page(params) do
-    params
-    |> Keyword.get(:per_page, 10)
-    |> to_integer
+    case Keyword.get(params, :per_page) do
+      nil       -> nil
+      per_page  -> per_page |> to_integer
+    end
   end
 
   def get_page(params) do
