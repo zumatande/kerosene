@@ -48,20 +48,15 @@ defmodule Kerosene do
   defp get_total_count(_count, repo, query) do
     primary_key = get_primary_key(query)
 
-    total_count =
+    total_pages =
       query
       |> exclude(:preload)
       |> exclude(:order_by)
       |> exclude(:select)
-      |> consider_group_by()
       |> select([i], count(field(i, ^primary_key), :distinct))
       |> repo.one
-
-    total_count || 0
+    total_pages || 0
   end
-
-  defp consider_group_by(query = %{group_bys: []}), do: query
-  defp consider_group_by(query), do: from subquery(query)
 
   def get_primary_key(query) do
     new_query = case is_map(query) do
