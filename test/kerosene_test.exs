@@ -1,7 +1,7 @@
 defmodule KeroseneTest do
   use ExUnit.Case
-  alias Kerosene.Repo
-  alias Kerosene.Product
+  import Ecto.Query
+  alias Kerosene.{Repo, Product, Order}
 
   setup do
     :ok = Ecto.Adapters.SQL.Sandbox.checkout(Kerosene.Repo)
@@ -10,6 +10,13 @@ defmodule KeroseneTest do
   defp create_products do
     for _ <- 1..10 do
       %Product { name: "Product 1", price: 100.00 }
+      |> Repo.insert!
+    end
+  end
+
+  defp create_orders(products) do
+    for product <- products do
+      %Order { product_id: product.id }
       |> Repo.insert!
     end
   end
@@ -50,6 +57,20 @@ defmodule KeroseneTest do
   test "fallbacks to count query when provided total_count is nil" do
     create_products()
     {_items, kerosene} = Product |> Repo.paginate(%{}, total_count: nil, per_page: 5)
+    assert kerosene.total_count == 10
+    assert kerosene.total_pages == 2
+  end
+
+  test "builds correct count query when group_by clause is present" do
+    create_products() |> create_orders()
+
+    query =
+      from p in Product,
+        left_join: o in assoc(p, :orders),
+        group_by: p.id,
+        select: %{p | orders_count: count(o.id)}
+
+    {_items, kerosene} = query |> Repo.paginate(%{}, per_page: 5)
     assert kerosene.total_count == 10
     assert kerosene.total_pages == 2
   end
