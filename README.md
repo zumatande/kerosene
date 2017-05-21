@@ -10,7 +10,7 @@ The package is [available in Hex](https://hex.pm/packages/kerosene), the package
 Add kerosene to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
-  [{:kerosene, "~> 0.6.1"}]
+  [{:kerosene, "~> 0.7.0"}]
 end
 ```
 

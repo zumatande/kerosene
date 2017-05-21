@@ -1,6 +1,6 @@
 defmodule Kerosene.Mixfile do
   use Mix.Project
-  @version "0.6.1"
+  @version "0.7.0"
 
   def project do
     [app: :kerosene,
