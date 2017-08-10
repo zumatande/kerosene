@@ -91,7 +91,7 @@ defmodule Kerosene.Paginator do
   end
 
   def build_params(params, params2) do
-    Map.merge(params, params2) |> normalize_keys
+    Map.merge(params, params2) |> normalize_keys()
   end
 
   def normalize_keys(params) when is_map(params) do
