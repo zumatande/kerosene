@@ -1,7 +1,7 @@
 defmodule Kerosene.Paginator do
   use Phoenix.HTML
 
-  @default [window: 3, next_label: "Next", previous_label: "Previous", first: true, first_label: "First", last: true, last_label: "Last"]
+  @default [window: 3, range: true, next_label: "Next", previous_label: "Previous", first: true, first_label: "First", last: true, last_label: "Last"]
 
   @moduledoc """
   Helpers to render the pagination links and more.
@@ -16,7 +16,7 @@ defmodule Kerosene.Paginator do
     page
     |> previous_page
     |> first_page(page, opts[:window], opts[:first])
-    |> page_list(page, total_pages, opts[:window])
+    |> page_list(page, total_pages, opts[:window], opts[:range])
     |> next_page(page, total_pages)
     |> last_page(page, total_pages, opts[:window], opts[:last])
     |> Enum.map(fn {l, p} -> 
@@ -37,13 +37,13 @@ defmodule Kerosene.Paginator do
   @doc """
   Generates a page list based on current window
   """
-  def page_list(list, page, total, window) when is_integer(window) and window >= 1 do
+  def page_list(list, page, total, window, true) when is_integer(window) and window >= 1 do
     page_list = left(page, total, window)..right(page, total, window) 
     |> Enum.map(fn n -> {n, n} end)
 
     list ++ page_list
   end
-  def page_list(list, _page, _total, _window), do: list
+  def page_list(list, _page, _total, _window, _range), do: list
 
   def left(page, _total, window) when page - window <= 1 do
     1
