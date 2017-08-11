@@ -4,6 +4,7 @@ defmodule Kerosene do
 
   @per_page 10
   @max_page 1000
+  @page 1
 
   @moduledoc """
   Pagination for Ecto and Phoenix.
@@ -25,9 +26,9 @@ defmodule Kerosene do
   def paginate(repo, query, opts) do
     per_page = get_per_page(opts)
     max_page = get_max_page(opts)
-    page = get_page(opts)
     total_count = get_total_count(opts[:total_count], repo, query)
     total_pages = get_total_pages(total_count, per_page)
+    page = get_page(opts, total_pages)
     offset = get_offset(total_count, page)
 
     kerosene = %Kerosene {
@@ -106,11 +107,11 @@ defmodule Kerosene do
     end
   end
 
-  def get_page(params) do
+  def get_page(params, total_pages) do
     page = Keyword.get(params, :page, 1) |> to_integer()
 
     case page > params[:max_page] do
-      true -> params[:max_page]
+      true -> total_pages
       _ -> page
     end
   end
@@ -123,5 +124,11 @@ defmodule Kerosene do
   end
 
   def to_integer(i) when is_integer(i), do: abs(i)
-  def to_integer(_), do: 1
+  def to_integer(i) when is_binary(i) do
+    case Integer.parse(i) do
+      :error -> @page
+      {page, _} -> page
+    end
+  end
+  def to_integer(_), do: @page
 end

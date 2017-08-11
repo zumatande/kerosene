@@ -2,7 +2,6 @@ defmodule Kerosene.Paginator do
   use Phoenix.HTML
 
   @default [window: 3, next_label: "Next", previous_label: "Previous", first: true, first_label: "First", last: true, last_label: "Last"]
-  @simple [window: 0, first: false, first_label: "", last: false, last_label: ""]
 
   @moduledoc """
   Helpers to render the pagination links and more.
@@ -39,24 +38,22 @@ defmodule Kerosene.Paginator do
   Generates a page list based on current window
   """
   def page_list(list, page, total, window) when is_integer(window) and window >= 1 do
-    page_list = left(page, window)..right(page, window, total) 
+    page_list = left(page, total, window)..right(page, total, window) 
     |> Enum.map(fn n -> {n, n} end)
+
     list ++ page_list
   end
-  def page_list(list, _page, _total, _window) do
-    list
-  end
+  def page_list(list, _page, _total, _window), do: list
 
-  def left(page, window) when page - window < 1 do
-    page - (window + (page - window - 1))
+  def left(page, _total, window) when page - window <= 1 do
+    1
   end
-  def left(page, window), do: page - window
+  def left(page, _total, window), do: page - window
 
-  def right(page, _window, 0), do: page
-  def right(page, window, total) when page + window >= total do
+  def right(page, total, window) when page + window >= total do
     total
   end
-  def right(page, window, _total), do: page + window
+  def right(page, _total, window), do: page + window
 
   def previous_page(page) when page > 1 do
     [{:previous, page - 1}]
@@ -102,12 +99,8 @@ defmodule Kerosene.Paginator do
   def build_options(opts) do
     params = opts[:params] || %{}
     theme  = opts[:theme]  || Application.get_env(:kerosene, :theme, :bootstrap)
-    mode   = opts[:mode]   || Application.get_env(:kerosene, :mode,  :default)
-    opts   = Keyword.merge(opts, [params: params, theme: theme, mode: mode])
+    opts   = Keyword.merge(opts, [params: params, theme: theme])
 
-    case Keyword.fetch(opts, :mode) do
-      {:ok, :simple}  -> @default |> Keyword.merge(@simple) |> Keyword.merge(opts)
-      {:ok, :default} -> Keyword.merge(@default, opts)
-    end
+    Keyword.merge(@default, opts)
   end
 end
