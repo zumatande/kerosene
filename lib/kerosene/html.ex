@@ -62,11 +62,12 @@ defmodule Kerosene.HTML do
 
   defp render_page_list(page_list, opts) do
     case opts[:theme] do
-      :bootstrap  -> HTML.Bootstrap.generate_links(page_list, opts[:class])
-      :bootstrap4 -> HTML.Bootstrap4.generate_links(page_list, opts[:class])
-      :foundation -> HTML.Foundation.generate_links(page_list, opts[:class])
-      :semantic   -> HTML.Semantic.generate_links(page_list, opts[:class])
-      _           -> HTML.Simple.generate_links(page_list, opts[:class])
+      :bootstrap   -> HTML.Bootstrap.generate_links(page_list, opts[:class])
+      :bootstrap4  -> HTML.Bootstrap4.generate_links(page_list, opts[:class])
+      :foundation  -> HTML.Foundation.generate_links(page_list, opts[:class])
+      :semantic    -> HTML.Semantic.generate_links(page_list, opts[:class])
+      :materialize -> HTML.Materialize.generate_links(page_list, opts[:class])
+      _            -> HTML.Simple.generate_links(page_list, opts[:class])
     end
   end
 end
