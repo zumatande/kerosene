@@ -3,7 +3,7 @@ defmodule Kerosene do
   import Ecto.Query
 
   @per_page 10
-  @max_page 1000
+  @max_page 100
   @page 1
 
   @moduledoc """
@@ -74,6 +74,7 @@ defmodule Kerosene do
       |> exclude(:select)
       |> select([i], count(field(i, ^primary_key), :distinct))
       |> repo.one
+
     total_pages || 0
   end
 
@@ -90,7 +91,7 @@ defmodule Kerosene do
 
   def get_total_pages(_, nil), do: 1
   def get_total_pages(count, per_page) do
-    Float.ceil(count / per_page) |> trunc
+    Float.ceil(count / per_page) |> trunc()
   end
 
   def get_per_page(params) do
@@ -108,18 +109,16 @@ defmodule Kerosene do
   end
 
   def get_page(params, total_pages) do
-    page = Keyword.get(params, :page, 1) |> to_integer()
-
-    case page > params[:max_page] do
+    case params[:page] > params[:max_page] do
       true -> total_pages
-      _ -> page
+      _ -> params[:page]
     end
   end
 
   defp merge_options(opts, params) do
-    page = Map.get(params, "page", 1)
-    per_page = Map.get(params, "per_page", opts[:per_page])
-    max_page = opts[:max_page] || Application.get_env(:kerosene, :max_page, @max_page)
+    page = Map.get(params, "page", @page) |> to_integer()
+    per_page = Map.get(params, "per_page", opts[:per_page]) |> to_integer()
+    max_page = Keyword.get(opts, :max_page, Application.get_env(:kerosene, :max_page, @max_page))
     Keyword.merge(opts, [page: page, per_page: per_page, params: params, max_page: max_page])
   end
 

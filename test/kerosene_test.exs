@@ -8,8 +8,8 @@ defmodule KeroseneTest do
   end
 
   defp create_products do
-    for _ <- 1..15 do
-      %Product { name: "Product 1", price: 100.00 }
+    for i <- 1..15 do
+      %Product { name: "Product " <> to_string(i), price: 100.00 }
       |> Repo.insert!
     end
   end
@@ -42,7 +42,7 @@ defmodule KeroseneTest do
     assert length(items) == 10
   end
 
-  test "total pages calculation" do
+  test "total_pages calculation" do
     row_count = 100
     per_page = 10
     total_pages = 10
@@ -56,7 +56,7 @@ defmodule KeroseneTest do
     assert kerosene.total_pages == 1
   end
 
-  test "page offset constraint" do
+  test "max_page constraint" do
     create_products()
     {_items, kerosene} = Product |> Repo.paginate(%{"page" => 100}, total_count: 3, per_page: 5, max_page: 10)
     assert kerosene.total_count == 3
@@ -64,7 +64,7 @@ defmodule KeroseneTest do
     assert kerosene.page == 10
   end
 
-  test "fallbacks to count query when provided total_count is nil" do
+  test "use count query when provided total_count is nil" do
     create_products()
     {_items, kerosene} = Product |> Repo.paginate(%{}, total_count: nil, per_page: 5)
     assert kerosene.total_count == 15
@@ -73,7 +73,7 @@ defmodule KeroseneTest do
 
   test "to_integer returns number" do
     assert Kerosene.to_integer(10) == 10
-    assert Kerosene.to_integer("10") == 1
+    assert Kerosene.to_integer("10") == 10
     assert Kerosene.to_integer(nil) == 1
   end
 end
