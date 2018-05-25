@@ -20,12 +20,13 @@ defmodule KeroseneTest do
     assert kerosene.per_page == 5
   end
 
-  test "per_page default option" do
+  test "default per_page option" do
     create_products()
     {items, kerosene} = Product |> Repo.paginate(%{}, per_page: nil)
     assert length(items) == 10
     assert kerosene.total_pages == 2
     assert kerosene.total_count == 15
+    assert kerosene.per_page == 10
   end
 
   test "total pages based on per_page" do
@@ -61,7 +62,7 @@ defmodule KeroseneTest do
     {_items, kerosene} = Product |> Repo.paginate(%{"page" => 100}, total_count: 3, per_page: 5, max_page: 10)
     assert kerosene.total_count == 3
     assert kerosene.total_pages == 1
-    assert kerosene.page == 10
+    assert kerosene.page == 1
   end
 
   test "use count query when provided total_count is nil" do

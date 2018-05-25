@@ -13,19 +13,19 @@ defmodule Kerosene do
   defmacro __using__(opts \\ []) do
     quote do
       def paginate(query, params \\ %{}, options \\ []) do
-        opts = Keyword.merge(unquote(opts), options)
-        Kerosene.paginate(__MODULE__, query, params, opts)
+        Kerosene.paginate( __MODULE__, query, params,
+          Keyword.merge(unquote(opts), options))
       end
     end
   end
 
   def paginate(repo, query, params, opts) do
-    paginate(repo, query, merge_options(opts, params))
+    paginate(repo, query, build_options(opts, params))
   end
 
   def paginate(repo, query, opts) do
-    per_page = get_per_page(opts)
-    max_page = get_max_page(opts)
+    per_page = Keyword.get(opts, :per_page)
+    max_page = Keyword.get(opts, :max_page)
     total_count = get_total_count(opts[:total_count], repo, query)
     total_pages = get_total_pages(total_count, per_page)
     page = get_page(opts, total_pages)
@@ -94,20 +94,6 @@ defmodule Kerosene do
     Float.ceil(count / per_page) |> trunc()
   end
 
-  def get_per_page(params) do
-    case Keyword.get(params, :per_page) do
-      nil       -> @per_page
-      per_page  -> per_page |> to_integer()
-    end
-  end
-
-  def get_max_page(params) do
-    case Keyword.get(params, :max_page) do
-      nil       -> @max_page
-      max_page  -> max_page
-    end
-  end
-
   def get_page(params, total_pages) do
     case params[:page] > params[:max_page] do
       true -> total_pages
@@ -115,18 +101,29 @@ defmodule Kerosene do
     end
   end
 
-  defp merge_options(opts, params) do
+  defp build_options(opts, params) do
     page = Map.get(params, "page", @page) |> to_integer()
-    per_page = Map.get(params, "per_page", opts[:per_page]) |> to_integer()
-    max_page = Keyword.get(opts, :max_page, Application.get_env(:kerosene, :max_page, @max_page))
+    per_page = default_per_page(opts) |> to_integer()
+    max_page = Keyword.get(opts, :max_page, default_max_page())
     Keyword.merge(opts, [page: page, per_page: per_page, params: params, max_page: max_page])
+  end
+
+  defp default_per_page(opts) do
+    case Keyword.get(opts, :per_page) do
+      nil -> Application.get_env(:kerosene, :per_page, @per_page)
+      per_page -> per_page
+    end
+  end
+
+  defp default_max_page() do
+    Application.get_env(:kerosene, :max_page, @max_page)
   end
 
   def to_integer(i) when is_integer(i), do: abs(i)
   def to_integer(i) when is_binary(i) do
     case Integer.parse(i) do
-      :error -> @page
-      {page, _} -> page
+      {n, _} -> n
+      _ -> 0
     end
   end
   def to_integer(_), do: @page

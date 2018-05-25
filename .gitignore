@@ -6,3 +6,5 @@
 *.tar
 erl_crash.dump
 *.ez
+
+tags
