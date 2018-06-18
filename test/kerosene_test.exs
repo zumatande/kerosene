@@ -15,6 +15,16 @@ defmodule KeroseneTest do
     end
   end
 
+  test "non schema based queries" do
+    create_products()
+    query =
+      from p in "products",
+      select: %{id: p.id, name: p.name}
+
+    {_items, kerosene} = Repo.paginate(query, %{})
+    assert kerosene.total_count == 15
+  end
+
   test "group_by in query" do
     create_products()
     {_items, kerosene} = Product |> group_by([p], p.id) |> Repo.paginate(%{})

@@ -76,17 +76,20 @@ defmodule Kerosene do
     total_pages || 0
   end
 
-  defp total_count(query = %{group_bys: [_|_]}) do
-    query
-    |> subquery()
-    |> select(count("*"))
-  end
+  defp total_count(query = %{group_bys: [_|_]}), do: total_row_count(query)
+  defp total_count(query = %{from: {_, nil}}), do: total_row_count(query)
 
   defp total_count(query) do
     primary_key = get_primary_key(query)
     query
     |> exclude(:select)
     |> select([i], count(field(i, ^primary_key), :distinct))
+  end
+
+  defp total_row_count(query) do
+    query
+    |> subquery()
+    |> select(count("*"))
   end
 
   def get_primary_key(query) do
