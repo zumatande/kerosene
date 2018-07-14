@@ -29,7 +29,7 @@ defmodule Kerosene do
     total_count = get_total_count(opts[:total_count], repo, query)
     total_pages = get_total_pages(total_count, per_page)
     page = get_page(opts, total_pages)
-    offset = get_offset(total_count, page)
+    offset = get_offset(total_count, page, per_page)
 
     kerosene = %Kerosene {
       per_page: per_page,
@@ -51,15 +51,15 @@ defmodule Kerosene do
     |> repo.all
   end
 
-  defp get_offset(total_pages, page) do
+  defp get_offset(total_pages, page, per_page) do
     page = case page > total_pages do
       true -> total_pages
       _ -> page
     end
 
     case page > 0 do
-      true -> page - 1
-      _ -> page
+      true -> (page - 1) * per_page
+      _ -> 0
     end
   end
 
@@ -76,17 +76,20 @@ defmodule Kerosene do
     total_pages || 0
   end
 
-  defp total_count(query = %{group_bys: [_|_]}) do
-    query
-    |> subquery()
-    |> select(count("*"))
-  end
+  defp total_count(query = %{group_bys: [_|_]}), do: total_row_count(query)
+  defp total_count(query = %{from: {_, nil}}), do: total_row_count(query)
 
   defp total_count(query) do
     primary_key = get_primary_key(query)
     query
     |> exclude(:select)
     |> select([i], count(field(i, ^primary_key), :distinct))
+  end
+
+  defp total_row_count(query) do
+    query
+    |> subquery()
+    |> select(count("*"))
   end
 
   def get_primary_key(query) do

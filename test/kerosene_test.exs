@@ -15,6 +15,24 @@ defmodule KeroseneTest do
     end
   end
 
+  test "offset works correctly" do
+    create_products()
+    {items, kerosene} = Product |> Repo.paginate(%{"page" => 2}, per_page: 5)
+    items = items |> Enum.sort_by(&(&1.id)) |> Enum.map(&(&1.name))
+
+    assert ["Product 6", "Product 7", "Product 8", "Product 9", "Product 10"] == items
+  end
+
+  test "non schema based queries" do
+    create_products()
+    query =
+      from p in "products",
+      select: %{id: p.id, name: p.name}
+
+    {_items, kerosene} = Repo.paginate(query, %{})
+    assert kerosene.total_count == 15
+  end
+
   test "group_by in query" do
     create_products()
     {_items, kerosene} = Product |> group_by([p], p.id) |> Repo.paginate(%{})
