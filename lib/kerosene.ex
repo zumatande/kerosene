@@ -77,7 +77,7 @@ defmodule Kerosene do
   end
 
   defp total_count(query = %{group_bys: [_|_]}), do: total_row_count(query)
-  defp total_count(query = %{from: {_, nil}}), do: total_row_count(query)
+  defp total_count(query = %{from: %{source: {_, nil}}}), do: total_row_count(query)
 
   defp total_count(query) do
     primary_key = get_primary_key(query)
