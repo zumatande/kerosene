@@ -17,7 +17,9 @@ end
 Add Kerosene to your `repo.ex`:
 ```elixir
 defmodule MyApp.Repo do
-  use Ecto.Repo, otp_app: :testapp
+  use Ecto.Repo, 
+    otp_app: :testapp,
+    adapter: Ecto.Adapters.Postgres
   use Kerosene, per_page: 2
 end
 ```
