@@ -14,7 +14,7 @@ defmodule Kerosene.Mixfile do
      aliases: aliases(),
      name: "Kerosene",
      docs: [source_ref: "v#{@version}", main: "Kerosene"],
-     source_url: "https://github.com/elixirdrops/kerosene",
+     source_url: "https://github.com/zumatande/kerosene",
      description: """
      Pagination for Ecto and Phoenix.
      """]
